@@ -143,24 +143,29 @@ fn setup(
 
 fn move_player(
     keyboard: Res<Input<KeyCode>>,
+    camera_q: Query<&Transform, (With<MainCamera>, Without<Player>)>,
     mut player_q: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
 ) {
-    let mut input = Vec3::ZERO;
+    let mut horizontal = 0.0;
+    let mut vertical = 0.0;
 
     if keyboard.pressed(KeyCode::A) {
-        input.x -= 1.0;
+        horizontal -= 1.0;
     }
     if keyboard.pressed(KeyCode::D) {
-        input.x += 1.0;
+        horizontal += 1.0;
     }
     if keyboard.pressed(KeyCode::W) {
-        input.z -= 1.0;
+        vertical -= 1.0;
     }
     if keyboard.pressed(KeyCode::S) {
-        input.z += 1.0;
+        vertical += 1.0;
     }
 
-    let mut transform = player_q.single_mut();
-    transform.translation += input.normalize_or_zero() * time.delta_seconds();
+    let camera = camera_q.single();
+    let right = camera.right();
+    let forward = right.cross(Vec3::Y);
+    let movement = right * horizontal + forward * vertical;
+    player_q.single_mut().translation += movement.normalize_or_zero() * time.delta_seconds();
 }
