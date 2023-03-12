@@ -70,12 +70,17 @@ fn setup(
         ..Default::default()
     });
 
+    let custom_material = custom_materials.add(CustomMaterial {
+        texture: asset_server.load("level.png"),
+    });
+
     // Plane
     commands.spawn(MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 15.0 })),
-        material: custom_materials.add(CustomMaterial {
-            texture: asset_server.load("level.png"),
-        }),
+        mesh: meshes.add(Mesh::from(shape::Plane {
+            size: 15.0,
+            ..Default::default()
+        })),
+        material: custom_material.clone_weak(),
         ..default()
     });
 
@@ -84,9 +89,7 @@ fn setup(
         transform: Transform::from_xyz(0.2, 0.2, -0.04).with_scale(Vec3::ONE + Vec3::Y * 2.0),
         mesh: meshes.add(Mesh::from(shape::Cube::new(0.3))),
         // material: standard_materials.add(Color::BLUE.into()),
-        material: custom_materials.add(CustomMaterial {
-            texture: asset_server.load("level.png"),
-        }),
+        material: custom_material,
         ..default()
     });
 
@@ -103,8 +106,8 @@ fn setup(
             },
             Player,
         ))
-        .add_children(|child| {
-            child.spawn(PbrBundle {
+        .with_children(|builder| {
+            builder.spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Capsule::default())),
                 material: standard_materials.add(Color::WHITE.into()),
                 transform: Transform {
@@ -114,12 +117,13 @@ fn setup(
                 ..Default::default()
             });
 
+            let eye_mesh = meshes.add(shape::Icosphere::default().try_into().unwrap());
             let eye_left = Vec3::new(-0.2, 1.6, -0.4);
             let eye_right = Vec3::new(-eye_left.x, eye_left.y, eye_left.z);
             let eye_scale = Vec3::splat(0.15);
 
-            child.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Icosphere::default())),
+            builder.spawn(PbrBundle {
+                mesh: eye_mesh.clone_weak(),
                 material: standard_materials.add(Color::BLACK.into()),
                 transform: Transform {
                     translation: eye_left,
@@ -128,8 +132,8 @@ fn setup(
                 },
                 ..Default::default()
             });
-            child.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Icosphere::default())),
+            builder.spawn(PbrBundle {
+                mesh: eye_mesh,
                 material: standard_materials.add(Color::BLACK.into()),
                 transform: Transform {
                     translation: eye_right,
